@@ -25,7 +25,7 @@ class Decoder(nn.Module):
 		x = self.first_layers(noised_image)
 		x = self.keep_layers(x)
 		x = self.final_layer(x)
-		x = x.view(x.shape[0], -1)
+		x = x.view(x.shape[0], -1)  # view()用于reshape
 		return x
 
 

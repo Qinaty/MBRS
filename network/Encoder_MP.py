@@ -11,23 +11,23 @@ class Encoder_MP(nn.Module):
 		self.H = H
 		self.W = W
 
-		message_convT_blocks = int(np.log2(H // int(np.sqrt(message_length))))
+		message_convT_blocks = int(np.log2(H // int(np.sqrt(message_length))))  # n
 		message_se_blocks = max(blocks - message_convT_blocks, 1)
 
-		self.image_pre_layer = ConvBNRelu(3, channels)
+		self.image_pre_layer = ConvBNRelu(3, channels)  # 归一化
 		self.image_first_layer = SENet(channels, channels, blocks=blocks)
 
 		self.message_pre_layer = nn.Sequential(
 			ConvBNRelu(1, channels),
-			ExpandNet(channels, channels, blocks=message_convT_blocks),
-			SENet(channels, channels, blocks=message_se_blocks),
+			ExpandNet(channels, channels, blocks=message_convT_blocks),  # 依据channel number扩展
+			SENet(channels, channels, blocks=message_se_blocks),  # SE特征提取
 		)
 
-		self.message_first_layer = SENet(channels, channels, blocks=blocks)
+		self.message_first_layer = SENet(channels, channels, blocks=blocks)  # image feature学习
 
 		self.after_concat_layer = ConvBNRelu(2 * channels, channels)
 
-		self.final_layer = nn.Conv2d(channels + 3, 3, kernel_size=1)
+		self.final_layer = nn.Conv2d(channels + 3, 3, kernel_size=1)  # 1x1卷积
 
 	def forward(self, image, message):
 		# first Conv part of Encoder
@@ -71,7 +71,7 @@ class Encoder_MP_Diffusion(nn.Module):
 		self.image_pre_layer = ConvBNRelu(3, channels)
 		self.image_first_layer = SENet(channels, channels, blocks=blocks)
 
-		self.message_duplicate_layer = nn.Linear(message_length, self.diffusion_length)
+		self.message_duplicate_layer = nn.Linear(message_length, self.diffusion_length)  # 全连接层
 		self.message_pre_layer_0 = ConvBNRelu(1, channels)
 		self.message_pre_layer_1 = ExpandNet(channels, channels, blocks=3)
 		self.message_pre_layer_2 = SENet(channels, channels, blocks=1)
@@ -99,7 +99,7 @@ class Encoder_MP_Diffusion(nn.Module):
 
 		# second Conv part of Encoder
 		intermediate3 = self.after_concat_layer(concat1)
-
+ 
 		# skip connection
 		concat2 = torch.cat([intermediate3, image], dim=1)
 

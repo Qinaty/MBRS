@@ -1,4 +1,3 @@
-from torch.utils.data import DataLoader
 from utils import *
 from network.Network import *
 
@@ -14,8 +13,8 @@ network = Network(H, W, message_length, noise_layers, device, batch_size, lr, wi
 EC_path = result_folder + "models/EC_" + str(model_epoch) + ".pth"
 network.load_model_ed(EC_path)
 
-test_dataset = MBRSDataset(os.path.join(dataset_path, "test"), H, W)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
+test_dataloader = dataloader.load_val_data()
 
 print("\nStart Testing : \n\n")
 
@@ -27,7 +26,7 @@ test_result = {
 
 start_time = time.time()
 
-saved_iterations = np.random.choice(np.arange(len(test_dataset)), size=save_images_number, replace=False)
+saved_iterations = np.random.choice(np.arange(len(test_dataloader)), size=save_images_number, replace=False)
 saved_all = None
 
 num = 0
@@ -44,6 +43,10 @@ for i, images in enumerate(test_dataloader):
 	with torch.no_grad():
 		# use device to compute
 		images, messages = images.to(network.device), message.to(network.device)
+
+		# if mask_type == "opt":
+		# else:
+		# 	mask = None
 
 		encoded_images = network.encoder_decoder.module.encoder(images, messages)
 		encoded_images = images + (encoded_images - image) * strength_factor

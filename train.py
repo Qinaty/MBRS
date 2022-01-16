@@ -1,22 +1,36 @@
-from torch.utils.data import DataLoader
 from utils import *
 from network.Network import *
 
 from utils.load_train_setting import *
 
+import os
+
+# Modify: for grad_cam
+from torchvision import transforms
+from gradcam import GradCAM
+import torchvision.models as models
+
 '''
 train
 '''
+
+# Modify: Choose GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 network = Network(H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion, only_decoder)
 
-train_dataset = MBRSDataset(os.path.join(dataset_path, "train"), H, W)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
+dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
+train_dataloader = dataloader.load_train_data()
+val_dataloader = dataloader.load_val_data()
 
-val_dataset = MBRSDataset(os.path.join(dataset_path, "validation"), H, W)
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+# Modify: grad_cam
+vgg16 = models.vgg16(pretrained=True).to(device)
+vgg16.eval()
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+conf = dict(model_type='vgg', arch=vgg16, layer_name='features_29')
+camera = GradCAM.from_config(**conf)
 
 if train_continue:
 	EC_path = "results/" + train_continue_path + "/models/EC_" + str(train_continue_epoch) + ".pth"
@@ -41,6 +55,9 @@ for epoch in range(epoch_number):
 		"d_encoded_loss": 0.0
 	}
 
+	# Modify: record best
+	# best_result = running_result
+
 	start_time = time.time()
 
 	'''
@@ -51,7 +68,35 @@ for epoch in range(epoch_number):
 		image = images.to(device)
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
-		result = network.train(image, message) if not only_decoder else network.train_only_decoder(image, message)
+		# Modify
+		if mask_type == "opt":
+			mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
+			# print(mask.shape[1])
+			mask = network.train_mask(image, message, mask)
+			mask = mask.to(device)
+		elif mask_type == "uniform":
+			mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
+			mask.requires_grad = False
+		elif mask_type == "grad_cam":
+			alpha = 0.5
+			# image_ = None
+			# get C*H*W
+			# for pic in image:
+			# 	pic = normalize(pic.squeeze()).unsqueeze(0)
+			# 	print(type(pic))
+			# 	if image_ is None:
+			# 		image_ = pic
+			# 	else:
+			# 		image_ = torch.cat([image_, pic], dim=0)
+			# print("!!", type(image_))
+
+			mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
+			# print(mask.shape)
+			mask = alpha * mask.to(device)
+		else:
+			mask = None
+
+		result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
 
 		for key in result:
 			running_result[key] += float(result[key])
@@ -70,9 +115,9 @@ for epoch in range(epoch_number):
 		file.write(content)
 	print(content)
 
-	'''
-	validation
-	'''
+	# '''
+	# validation
+	# '''
 
 	val_result = {
 		"error_rate": 0.0,
@@ -88,7 +133,7 @@ for epoch in range(epoch_number):
 
 	start_time = time.time()
 
-	saved_iterations = np.random.choice(np.arange(len(val_dataset)), size=save_images_number, replace=False)
+	saved_iterations = np.random.choice(np.arange(len(val_dataloader)), size=save_images_number, replace=False)
 	saved_all = None
 
 	num = 0
@@ -96,18 +141,41 @@ for epoch in range(epoch_number):
 		image = images.to(device)
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
-		result, (images, encoded_images, noised_images, messages, decoded_messages) = network.validation(image, message)
+		if mask_type == "opt":
+			mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
+			mask = network.train_mask(image, message, mask)
+			mask = mask.to(device)
+		elif mask_type == "uniform":
+			mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
+			mask.requires_grad = False
+		elif mask_type == "grad_cam":
+			alpha = 0.5
+			mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
+			# print(mask.shape)
+			mask = alpha * mask.to(device)
+		else:
+			mask = None
+
+		result, (images, encoded_images, noised_images, messages, decoded_messages) = network.validation(image, message, mask)
 
 		for key in result:
 			val_result[key] += float(result[key])
 
 		num += 1
 
-		if i in saved_iterations:
-			if saved_all is None:
-				saved_all = get_random_images(image, encoded_images, noised_images)
-			else:
-				saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
+		# Modify: save mask
+		if mask_type == "opt" and epoch == 99:
+			if i in saved_iterations:
+				if saved_all is None:
+					saved_all = get_random_images(image, encoded_images, mask)
+				else:
+					saved_all = concatenate_images(saved_all, image, encoded_images, mask)
+		else:
+			if i in saved_iterations:
+				if saved_all is None:
+					saved_all = get_random_images(image, encoded_images, noised_images)
+				else:
+					saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
 
 	save_images(saved_all, epoch, result_folder + "images/", resize_to=(W, H))
 

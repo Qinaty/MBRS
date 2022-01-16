@@ -19,6 +19,8 @@ save_images_number = settings.save_images_number
 lr = 1e-3
 H, W, message_length = settings.H, settings.W, settings.message_length
 noise_layers = settings.noise_layers
+mask_iter = settings.mask_iter
+mask_type = settings.mask_type
 
 result_folder = "results/" + settings.result_folder
 test_base = "/test_"

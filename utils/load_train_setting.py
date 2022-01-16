@@ -10,6 +10,8 @@ settings.load_json_file("train_settings.json")
 
 with_diffusion = settings.with_diffusion
 only_decoder = settings.only_decoder
+mask_type = settings.mask_type
+mask_iter = settings.mask_iter
 
 project_name = settings.project_name
 dataset_path = settings.dataset_path

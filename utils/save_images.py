@@ -17,6 +17,9 @@ from PIL import Image
 def save_images(saved_all, epoch, folder, resize_to=None):
 	original_images, watermarked_images, noised_images = saved_all
 
+	# Modify: for mask
+	noised_images = noised_images.expand_as(original_images)
+
 	images = original_images[:original_images.shape[0], :, :, :].cpu()
 	watermarked_images = watermarked_images[:watermarked_images.shape[0], :, :, :].cpu()
 
