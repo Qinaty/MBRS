@@ -1,25 +1,33 @@
 from .Encoder_MP_Decoder import *
 from .Discriminator import Discriminator
+from .NLAMask import NLAMask
 from utils.load_train_setting import mask_iter
 
 
 class Network:
 
 	def __init__(self, H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion=False,
-				 only_decoder=False):
+				 only_decoder=False, attention=False):
 		# device
 		self.device = device
 
 		# network
-		if not with_diffusion:
-			self.encoder_decoder = EncoderDecoder(H, W, message_length, noise_layers).to(device)
+		if attention:
+			self.encoder_decoder = EncoderDecoder_Mask(H, W, message_length, noise_layers).to(device)
 		else:
-			self.encoder_decoder = EncoderDecoder_Diffusion(H, W, message_length, noise_layers).to(device)
+			if not with_diffusion:
+				self.encoder_decoder = EncoderDecoder(H, W, message_length, noise_layers).to(device)
+			else:
+				self.encoder_decoder = EncoderDecoder_Diffusion(H, W, message_length, noise_layers).to(device)
+
+		# self.encoder_decoder_mask = EncoderDecoder_Mask(H, W, message_length, noise_layers).to(device)
 
 		self.discriminator = Discriminator().to(device)
 
 		self.encoder_decoder = torch.nn.DataParallel(self.encoder_decoder)  # DataParallel mini-batch送到不同device训练
 		self.discriminator = torch.nn.DataParallel(self.discriminator)
+		# Modify
+		# self.encoder_decoder_mask = torch.nn.DataParallel(self.encoder_decoder_mask)
 
 		if only_decoder:
 			for p in self.encoder_decoder.module.encoder.parameters():
@@ -34,6 +42,9 @@ class Network:
 		self.opt_encoder_decoder = torch.optim.Adam(
 			filter(lambda p: p.requires_grad, self.encoder_decoder.parameters()), lr=lr)
 		self.opt_discriminator = torch.optim.Adam(self.discriminator.parameters(), lr=lr)
+		# # Modify
+		# self.opt_encoder_decoder_mask = torch.optim.Adam(
+		# 	filter(lambda p: p.requires_grad, self.encoder_decoder.parameters()), lr=lr)
 
 		# loss function
 		self.criterion_BCE = nn.BCEWithLogitsLoss().to(device)
@@ -200,6 +211,81 @@ class Network:
 			"d_encoded_loss": d_encoded_loss
 		}
 		return result
+
+	# Modify: train_with NLAMask
+	def train_attention(self, images, messages):
+		self.encoder_decoder.train()
+		self.discriminator.train()
+
+		with torch.enable_grad():
+			# use device to compute
+			images, messages = images.to(self.device), messages.to(self.device)
+			encoded_images, noised_images, decoded_messages, mask = self.encoder_decoder(images, messages)
+
+			'''
+			train discriminator
+			'''
+			self.opt_discriminator.zero_grad()
+
+			# RAW : target label for image should be "cover"(1)
+			d_label_cover = self.discriminator(images)
+			d_cover_loss = self.criterion_BCE(d_label_cover, self.label_cover[:d_label_cover.shape[0]])
+			d_cover_loss.backward()
+
+			# GAN : target label for encoded image should be "encoded"(0)
+			d_label_encoded = self.discriminator(encoded_images.detach())
+			d_encoded_loss = self.criterion_BCE(d_label_encoded, self.label_encoded[:d_label_encoded.shape[0]])
+			d_encoded_loss.backward()
+
+			self.opt_discriminator.step()  # optimizer.step()对应每一个mini-batch
+
+			'''
+			train encoder and decoder
+			'''
+			self.opt_encoder_decoder.zero_grad()
+
+			# GAN : target label for encoded image should be "cover"(0)
+			g_label_decoded = self.discriminator(encoded_images)
+			g_loss_on_discriminator = self.criterion_BCE(g_label_decoded, self.label_cover[:g_label_decoded.shape[0]])
+
+			# RAW : the encoded image should be similar to cover image
+			# Modify: mask
+			g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+
+			# RESULT : the decoded message should be similar to the raw message
+			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
+
+			# full loss
+			g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
+					 self.decoder_weight * g_loss_on_decoder
+
+			g_loss.backward()
+			self.opt_encoder_decoder.step()
+
+			# psnr
+			psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
+
+			# ssim
+			ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
+			# ssim = 1 - 2 * kornia.losses.ssim_loss(encoded_images.detach(), images, window_size=5, reduction="mean")
+
+		'''
+		decoded message error rate
+		'''
+		error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
+
+		result = {
+			"error_rate": error_rate,
+			"psnr": psnr,
+			"ssim": ssim,
+			"g_loss": g_loss,
+			"g_loss_on_discriminator": g_loss_on_discriminator,
+			"g_loss_on_encoder": g_loss_on_encoder,
+			"g_loss_on_decoder": g_loss_on_decoder,
+			"d_cover_loss": d_cover_loss,
+			"d_encoded_loss": d_encoded_loss
+		}
+		return result, mask
 
 	def train_only_decoder(self, images: torch.Tensor, messages: torch.Tensor):
 		self.encoder_decoder.train()

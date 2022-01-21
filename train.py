@@ -19,7 +19,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-network = Network(H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion, only_decoder)
+attention = False
+if mask_type == "attention":
+	attention = True
+network = Network(H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion, only_decoder, attention)
 
 dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
 train_dataloader = dataloader.load_train_data()
@@ -96,7 +99,10 @@ for epoch in range(epoch_number):
 		else:
 			mask = None
 
-		result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
+		if mask_type == "attention":
+			result, mask = network.train_attention(image, message)
+		else:
+			result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
 
 		for key in result:
 			running_result[key] += float(result[key])

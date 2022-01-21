@@ -1,4 +1,6 @@
 from . import *
+from .blocks.AttentionNet import ResBlock, Non_local_Block
+import torch.nn.functional as f
 
 
 class Encoder_MP(nn.Module):
@@ -52,7 +54,7 @@ class Encoder_MP(nn.Module):
 		# last Conv part of Encoder
 		output = self.final_layer(concat2)
 
-		return output
+		return output, mask
 
 
 class Encoder_MP_Diffusion(nn.Module):
@@ -99,7 +101,7 @@ class Encoder_MP_Diffusion(nn.Module):
 
 		# second Conv part of Encoder
 		intermediate3 = self.after_concat_layer(concat1)
- 
+
 		# skip connection
 		concat2 = torch.cat([intermediate3, image], dim=1)
 
@@ -107,3 +109,71 @@ class Encoder_MP_Diffusion(nn.Module):
 		output = self.final_layer(concat2)
 
 		return output
+
+
+class Encoder_Mask(nn.Module):
+	'''
+	Insert a watermark into an image
+	'''
+
+	def __init__(self, H, W, message_length, blocks=4, channels=64):
+		super(Encoder_Mask, self).__init__()
+		self.H = H
+		self.W = W
+
+		message_convT_blocks = int(np.log2(H // int(np.sqrt(message_length))))  # n
+		message_se_blocks = max(blocks - message_convT_blocks, 1)
+
+		self.image_pre_layer = ConvBNRelu(3, channels)  # 归一化
+		self.image_first_layer = SENet(channels, channels, blocks=blocks)
+
+		self.message_pre_layer = nn.Sequential(
+			ConvBNRelu(1, channels),
+			ExpandNet(channels, channels, blocks=message_convT_blocks),  # 依据channel number扩展
+			SENet(channels, channels, blocks=message_se_blocks),  # SE特征提取
+		)
+
+		self.message_first_layer = SENet(channels, channels, blocks=blocks)  # image feature学习
+
+		self.after_concat_layer = ConvBNRelu(2 * channels, channels)
+
+		self.final_layer = nn.Conv2d(channels + 3, 3, kernel_size=1)  # 1x1卷积
+
+		# Modify: Add NLMask
+		self.g_mask = nn.Sequential(
+			Non_local_Block(channels, channels // 2),
+			ResBlock(channels, channels, 3, 1, 1),
+			ResBlock(channels, channels, 3, 1, 1),
+			ResBlock(channels, channels, 3, 1, 1),
+			nn.Conv2d(channels, channels, 1, 1, 0)
+		)
+
+	def forward(self, image, message):
+		# first Conv part of Encoder
+		image_pre = self.image_pre_layer(image)
+		intermediate1 = self.image_first_layer(image_pre)
+
+		# Message Processor
+		size = int(np.sqrt(message.shape[1]))
+		message_image = message.view(-1, 1, size, size)
+		message_pre = self.message_pre_layer(message_image)
+		intermediate2 = self.message_first_layer(message_pre)
+
+		# Modify: Mask Processor
+		# features_in = intermediate1
+		mask = f.sigmoid(self.g_mask(intermediate1))
+		intermediate1 = torch.cat([intermediate1, mask], dim=1)
+
+		# concatenate
+		concat1 = torch.cat([intermediate1, intermediate2], dim=1)
+
+		# second Conv part of Encoder
+		intermediate3 = self.after_concat_layer(concat1)
+
+		# skip connection
+		concat2 = torch.cat([intermediate3, image], dim=1)
+
+		# last Conv part of Encoder
+		output = self.final_layer(concat2)
+
+		return output, mask

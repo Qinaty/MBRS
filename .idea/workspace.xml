@@ -2,20 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="307d85af-147f-47ba-944c-c2487614e8e1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Decoder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/NLAMask.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/blocks/AttentionNet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_view.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/MBRS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MBRS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/Encoder_MP.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/Network.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/Noise.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Noise.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/test_settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/train_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Dataloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/load_test_setting.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/load_test_setting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/load_train_setting.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/load_train_setting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/save_images.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/save_images.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +49,29 @@
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.NLAMask">
+    <configuration name="NLAMask" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="MBRS" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network/NLAMask.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="combined" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MBRS" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -77,6 +96,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.NLAMask" />
         <item itemvalue="Python.combined" />
       </list>
     </recent_temporary>
@@ -119,6 +139,12 @@
       <workItem from="1641905015785" duration="69000" />
       <workItem from="1642064984966" duration="786000" />
       <workItem from="1642144175817" duration="822000" />
+      <workItem from="1642306051953" duration="995000" />
+      <workItem from="1642318367600" duration="5842000" />
+      <workItem from="1642382902594" duration="4885000" />
+      <workItem from="1642471091790" duration="2099000" />
+      <workItem from="1642663739794" duration="1491000" />
+      <workItem from="1642742818381" duration="6908000" />
     </task>
     <servers />
   </component>
@@ -126,10 +152,10 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1639104131678">
+    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1642663845278">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1639104131678" />
+    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1642663845278" />
     <state x="294" y="36" key="#Options" timestamp="1639043710976">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
@@ -146,30 +172,30 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="93" y="93" width="1095" height="535" key="DiffContextDialog/0.0.1280.720@0.0.1280.720" timestamp="1639055504199" />
-    <state x="93" y="93" width="1095" height="535" key="DirDiffDialog" timestamp="1639041501341">
+    <state x="93" y="93" width="1095" height="535" key="DirDiffDialog" timestamp="1642383103635">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="93" y="93" width="1095" height="535" key="DirDiffDialog/0.0.1280.720@0.0.1280.720" timestamp="1639041501341" />
+    <state x="93" y="93" width="1095" height="535" key="DirDiffDialog/0.0.1280.720@0.0.1280.720" timestamp="1642383103635" />
     <state x="421" y="116" key="FileChooserDialogImpl" timestamp="1642144996478">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="421" y="116" key="FileChooserDialogImpl/0.0.1280.720@0.0.1280.720" timestamp="1642144996478" />
-    <state width="1237" height="220" key="GridCell.Tab.0.bottom" timestamp="1639058099155">
+    <state width="1237" height="176" key="GridCell.Tab.0.bottom" timestamp="1642410899733">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state width="1237" height="220" key="GridCell.Tab.0.bottom/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.0.center" timestamp="1639058099155">
+    <state width="1237" height="176" key="GridCell.Tab.0.bottom/0.0.1280.720@0.0.1280.720" timestamp="1642410899733" />
+    <state width="1237" height="176" key="GridCell.Tab.0.center" timestamp="1642410899732">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state width="1237" height="220" key="GridCell.Tab.0.center/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.0.left" timestamp="1639058099155">
+    <state width="1237" height="176" key="GridCell.Tab.0.center/0.0.1280.720@0.0.1280.720" timestamp="1642410899732" />
+    <state width="1237" height="176" key="GridCell.Tab.0.left" timestamp="1642410899732">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state width="1237" height="220" key="GridCell.Tab.0.left/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.0.right" timestamp="1639058099155">
+    <state width="1237" height="176" key="GridCell.Tab.0.left/0.0.1280.720@0.0.1280.720" timestamp="1642410899732" />
+    <state width="1237" height="176" key="GridCell.Tab.0.right" timestamp="1642410899732">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state width="1237" height="220" key="GridCell.Tab.0.right/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
+    <state width="1237" height="176" key="GridCell.Tab.0.right/0.0.1280.720@0.0.1280.720" timestamp="1642410899732" />
     <state width="1237" height="220" key="GridCell.Tab.1.bottom" timestamp="1639058099155">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
@@ -198,13 +224,14 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="256" y="110" key="ftp.server.browser/0.0.1280.720@0.0.1280.720" timestamp="1639104129641" />
-    <state x="303" y="41" width="672" height="678" key="search.everywhere.popup" timestamp="1640084467006">
+    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup" timestamp="1642386827409">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="303" y="41" width="672" height="678" key="search.everywhere.popup/0.0.1280.720@0.0.1280.720" timestamp="1640084467006" />
+    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup/0.0.1280.720@0.0.1280.720" timestamp="1642386827409" />
     <state x="455" y="62" width="1008" height="1017" key="search.everywhere.popup/0.0.1920.1080@0.0.1920.1080" timestamp="1639707121704" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/MBRS$combined.coverage" NAME="combined Coverage Results" MODIFIED="1639058080212" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network/noise_layers" />
+    <SUITE FILE_PATH="coverage/MBRS$NLAMask.coverage" NAME="NLAMask Coverage Results" MODIFIED="1642383041564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network" />
   </component>
 </project>
