@@ -12,7 +12,7 @@
       <paths name="tanyuqi@10.103.11.103:22">
         <serverdata>
           <mappings>
-            <mapping deploy="/pycharm/MBRS" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/MBRS" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

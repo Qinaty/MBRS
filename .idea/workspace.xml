@@ -2,17 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="307d85af-147f-47ba-944c-c2487614e8e1" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/network/NLAMask.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network/blocks/AttentionNet.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_view.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/MBRS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MBRS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Encoder_MP.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Network.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Noise.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Noise.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/train_settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,7 +135,8 @@
       <workItem from="1642382902594" duration="4885000" />
       <workItem from="1642471091790" duration="2099000" />
       <workItem from="1642663739794" duration="1491000" />
-      <workItem from="1642742818381" duration="6908000" />
+      <workItem from="1642742818381" duration="12647000" />
+      <workItem from="1642909767222" duration="1778000" />
     </task>
     <servers />
   </component>
@@ -152,14 +144,18 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1642663845278">
+    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1642910914626">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1642663845278" />
+    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1642910914626" />
     <state x="294" y="36" key="#Options" timestamp="1639043710976">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="294" y="36" key="#Options/0.0.1280.720@0.0.1280.720" timestamp="1639043710976" />
+    <state x="108" y="0" key="#SSH_Configurations" timestamp="1642756240901">
+      <screen x="0" y="0" width="1280" height="720" />
+    </state>
+    <state x="108" y="0" key="#SSH_Configurations/0.0.1280.720@0.0.1280.720" timestamp="1642756240901" />
     <state x="345" y="96" key="#Servers" timestamp="1639043419635">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
@@ -212,18 +208,22 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state width="1237" height="220" key="GridCell.Tab.1.right/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state x="142" y="5" key="SettingsEditor" timestamp="1639055785016">
+    <state x="426" y="81" key="RollbackChangesDialog" timestamp="1642910206477">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="142" y="5" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1639055785016" />
+    <state x="426" y="81" key="RollbackChangesDialog/0.0.1280.720@0.0.1280.720" timestamp="1642910206477" />
+    <state x="142" y="5" key="SettingsEditor" timestamp="1642752011369">
+      <screen x="0" y="0" width="1280" height="720" />
+    </state>
+    <state x="142" y="5" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1642752011369" />
     <state x="0" y="0" width="960" height="603" key="dock-window-1" timestamp="1638171372215">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="0" y="0" width="960" height="603" key="dock-window-1/0.0.1280.720@0.0.1280.720" timestamp="1638171372215" />
-    <state x="256" y="110" key="ftp.server.browser" timestamp="1639104129641">
+    <state x="256" y="110" key="ftp.server.browser" timestamp="1642910760815">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="256" y="110" key="ftp.server.browser/0.0.1280.720@0.0.1280.720" timestamp="1639104129641" />
+    <state x="256" y="110" key="ftp.server.browser/0.0.1280.720@0.0.1280.720" timestamp="1642910760815" />
     <state x="303" y="41" width="672" height="160" key="search.everywhere.popup" timestamp="1642386827409">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
