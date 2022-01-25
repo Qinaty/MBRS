@@ -4,7 +4,7 @@
   "only_decoder": false,
   "mask_type": "attention",
   "epoch_number": 50,
-  "batch_size": 4,
+  "batch_size": 1,
   "train_continue": false,
   "train_continue_path": "./none_10x",
   "train_continue_epoch": 93,

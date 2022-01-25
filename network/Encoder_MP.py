@@ -1,6 +1,5 @@
 from . import *
 from .blocks.AttentionNet import ResBlock, Non_local_Block
-import torch.nn.functional as f
 
 
 class Encoder_MP(nn.Module):
@@ -136,6 +135,8 @@ class Encoder_Mask(nn.Module):
 		self.message_first_layer = SENet(channels, channels, blocks=blocks)  # image feature学习
 
 		self.after_concat_layer = ConvBNRelu(2 * channels, channels)
+		# Modify: Mask 3*channel
+		# self.after_concat_layer = ConvBNRelu(3 * channels, channels)
 
 		self.final_layer = nn.Conv2d(channels + 3, 3, kernel_size=1)  # 1x1卷积
 
@@ -158,11 +159,14 @@ class Encoder_Mask(nn.Module):
 		message_image = message.view(-1, 1, size, size)
 		message_pre = self.message_pre_layer(message_image)
 		intermediate2 = self.message_first_layer(message_pre)
+		# print(intermediate1.size()) (64, H, W)
 
 		# Modify: Mask Processor
 		# features_in = intermediate1
-		mask = f.sigmoid(self.g_mask(intermediate1))
-		intermediate1 = torch.cat([intermediate1, mask], dim=1)
+		mask = torch.sigmoid(self.g_mask(intermediate1))
+		# print(mask.size()) (64, H, W)
+		# intermediate1 = torch.cat([intermediate1, mask], dim=1)
+		intermediate1 = intermediate1 + mask
 
 		# concatenate
 		concat1 = torch.cat([intermediate1, intermediate2], dim=1)

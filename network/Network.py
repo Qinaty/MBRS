@@ -399,6 +399,70 @@ class Network:
 
 		return result, (images, encoded_images, noised_images, messages, decoded_messages)
 
+	# Modify
+	def validation_attention(self, images: torch.Tensor, messages: torch.Tensor):
+		self.encoder_decoder.eval()
+		self.discriminator.eval()
+
+		with torch.no_grad():
+			# use device to compute
+			images, messages = images.to(self.device), messages.to(self.device)
+			encoded_images, noised_images, decoded_messages, mask = self.encoder_decoder(images, messages)
+
+			'''
+			validate discriminator
+			'''
+			# RAW : target label for image should be "cover"(1)
+			d_label_cover = self.discriminator(images)
+			d_cover_loss = self.criterion_BCE(d_label_cover, self.label_cover[:d_label_cover.shape[0]])
+
+			# GAN : target label for encoded image should be "encoded"(0)
+			d_label_encoded = self.discriminator(encoded_images.detach())
+			d_encoded_loss = self.criterion_BCE(d_label_encoded, self.label_encoded[:d_label_encoded.shape[0]])
+
+			'''
+			validate encoder and decoder
+			'''
+
+			# GAN : target label for encoded image should be "cover"(0)
+			g_label_decoded = self.discriminator(encoded_images)
+			g_loss_on_discriminator = self.criterion_BCE(g_label_decoded, self.label_cover[:g_label_decoded.shape[0]])
+
+			# RAW : the encoded image should be similar to cover image
+			g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+
+			# RESULT : the decoded message should be similar to the raw message
+			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
+
+			# full loss
+			g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
+					 self.decoder_weight * g_loss_on_decoder
+
+			# psnr
+			psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
+
+			# ssim
+			ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
+
+		'''
+		decoded message error rate
+		'''
+		error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
+
+		result = {
+			"error_rate": error_rate,
+			"psnr": psnr,
+			"ssim": ssim,
+			"g_loss": g_loss,
+			"g_loss_on_discriminator": g_loss_on_discriminator,
+			"g_loss_on_encoder": g_loss_on_encoder,
+			"g_loss_on_decoder": g_loss_on_decoder,
+			"d_cover_loss": d_cover_loss,
+			"d_encoded_loss": d_encoded_loss
+		}
+
+		return result, (images, encoded_images, noised_images, messages, decoded_messages)
+
 	def decoded_message_error_rate(self, message, decoded_message):
 		length = message.shape[0]
 

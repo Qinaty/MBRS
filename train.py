@@ -15,7 +15,7 @@ train
 '''
 
 # Modify: Choose GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -147,22 +147,26 @@ for epoch in range(epoch_number):
 		image = images.to(device)
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
-		if mask_type == "opt":
-			mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
-			mask = network.train_mask(image, message, mask)
-			mask = mask.to(device)
-		elif mask_type == "uniform":
-			mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
-			mask.requires_grad = False
-		elif mask_type == "grad_cam":
-			alpha = 0.5
-			mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
-			# print(mask.shape)
-			mask = alpha * mask.to(device)
+		if mask_type == "attention":
+			result, (images, encoded_images, noised_images, messages, decoded_messages) = \
+				network.validation_attention(image, message)
 		else:
-			mask = None
+			if mask_type == "opt":
+				mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
+				mask = network.train_mask(image, message, mask)
+				mask = mask.to(device)
+			elif mask_type == "uniform":
+				mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
+				mask.requires_grad = False
+			elif mask_type == "grad_cam":
+				alpha = 0.5
+				mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
+				# print(mask.shape)
+				mask = alpha * mask.to(device)
+			else:
+				mask = None
 
-		result, (images, encoded_images, noised_images, messages, decoded_messages) = network.validation(image, message, mask)
+			result, (images, encoded_images, noised_images, messages, decoded_messages) = network.validation(image, message, mask)
 
 		for key in result:
 			val_result[key] += float(result[key])

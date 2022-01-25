@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
 
 
 class ResBlock(nn.Module):
@@ -18,7 +17,7 @@ class ResBlock(nn.Module):
                                self.k, self.stride, self.padding)
 
     def forward(self, x):
-        x1 = self.conv2(f.relu(self.conv1(x)))
+        x1 = self.conv2(torch.relu(self.conv1(x)))
         out = x+x1
         return out
 
@@ -46,7 +45,7 @@ class Non_local_Block(nn.Module):
         phi_x = self.phi(x).view(batch_size, self.out_channel, -1)  # (b, c, h*w)
 
         f1 = torch.matmul(theta_x, phi_x)  # (b, h*w, h*w)
-        f_div_C = f.softmax(f1, dim=-1)
+        f_div_C = torch.softmax(f1, dim=-1)
         y = torch.matmul(f_div_C, g_x)  # (b, h*w, c)
         # 调用contiguous()时，会强制拷贝一份tensor，让它的布局和从头创建的一模一样，但是两个tensor完全没有联系。
         y = y.permute(0, 2, 1).contiguous()  # (b, c, h*w)

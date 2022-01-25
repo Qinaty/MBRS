@@ -2,8 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="307d85af-147f-47ba-944c-c2487614e8e1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets_test_10x/train/n02346627_11034.JPEG" beforeDir="false" afterPath="$PROJECT_DIR$/datasets_test_10x/train/n02346627_11034.JPEG" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/Encoder_MP.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/Network.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Network.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/blocks/AttentionNet.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/blocks/AttentionNet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/train_settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +141,11 @@
       <workItem from="1642471091790" duration="2099000" />
       <workItem from="1642663739794" duration="1491000" />
       <workItem from="1642742818381" duration="12647000" />
-      <workItem from="1642909767222" duration="1778000" />
+      <workItem from="1642909767222" duration="7324000" />
+      <workItem from="1642990813579" duration="2926000" />
+      <workItem from="1643079155358" duration="1201000" />
+      <workItem from="1643087589373" duration="5759000" />
+      <workItem from="1643096618438" duration="742000" />
     </task>
     <servers />
   </component>
@@ -144,10 +153,10 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1642910914626">
+    <state x="13" y="0" width="1037" height="682" key="#Deployment" timestamp="1643093372811">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1642910914626" />
+    <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1643093372811" />
     <state x="294" y="36" key="#Options" timestamp="1639043710976">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
