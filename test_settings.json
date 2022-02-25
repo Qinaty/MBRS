@@ -1,9 +1,9 @@
 {
-  "result_folder": "none_10x/",
-  "model_epoch": 161,
+  "result_folder": "05_concat_bs8/",
+  "model_epoch": 99,
   "with_diffusion": false,
   "strength_factor": 1,
-  "dataset_path": "datasets_test_10x/",
+  "dataset_path": "datasets_test_10x/validation/",
   "H": 128,
   "W": 128,
   "message_length": 64,
@@ -12,5 +12,5 @@
     "Combined([JpegMask(50),Jpeg(50),Identity()])"
   ],
   "mask_iter": 30,
-  "mask_type": "none"
+  "mask_type": "attention"
 }

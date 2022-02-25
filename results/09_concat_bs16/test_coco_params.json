@@ -1,0 +1,16 @@
+{
+  "result_folder": "MBRS_m64_Combined([JpegMask(50),Jpeg(50),Identity()])__2022_02_22__00_01_15/",
+  "model_epoch": 80,
+  "with_diffusion": false,
+  "strength_factor": 1,
+  "dataset_path": "test_coco_5000/",
+  "H": 128,
+  "W": 128,
+  "message_length": 64,
+  "save_images_number": 4,
+  "noise_layers": [
+    "Combined([JpegMask(50),Jpeg(50),Identity()])"
+  ],
+  "mask_iter": 30,
+  "mask_type": "attention"
+}

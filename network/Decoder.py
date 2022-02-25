@@ -9,13 +9,20 @@ class Decoder(nn.Module):
 	def __init__(self, H, W, message_length, blocks=4, channels=64):
 		super(Decoder, self).__init__()
 
-		stride_blocks = int(np.log2(H // int(np.sqrt(message_length))))
-		keep_blocks = max(blocks - stride_blocks, 0)
+		stride_blocks = int(np.log2(H // int(np.sqrt(message_length))))  # message_convT_blocks
+		keep_blocks = max(blocks - stride_blocks, 0)  # message_se_blocks
 
-		self.first_layers = nn.Sequential(
-			ConvBNRelu(3, channels),
+		# self.first_layers = nn.Sequential(
+		# 	ConvBNRelu(3, channels),
+		# 	SENet_decoder(channels, channels, blocks=stride_blocks + 1),  # H / 2**stride_blocks
+		# 	ConvBNRelu(channels * (2 ** stride_blocks), channels)
+		# )
+
+		# Modify:
+		self.final_layer1 = ConvBNRelu(3, channels)
+		self.final_layer2 = nn.Sequential(
 			SENet_decoder(channels, channels, blocks=stride_blocks + 1),
-			ConvBNRelu(channels * (2 ** stride_blocks), channels),
+			ConvBNRelu(channels * (2 ** stride_blocks), channels)
 		)
 		self.keep_layers = SENet(channels, channels, blocks=keep_blocks)
 

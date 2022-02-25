@@ -15,6 +15,7 @@ class Dataloader:
 		self.W = W
 		self.train_path = path + "train/"
 		self.val_path = path + "validation/"
+		self.test_path = path
 		self.transform = transforms.Compose([
 			transforms.ToTensor(),
 			transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
@@ -76,7 +77,8 @@ class Dataloader:
 		id = 0
 		for image_name in os.listdir(path):
 			# get transformed image & mask
-			image = Image.open(path + image_name)
+			# Modify: convert('RGB')
+			image = Image.open(path + image_name).convert('RGB')
 			image = np.array(image, dtype=np.float32)
 
 			transformed = self.transform_image(image)
@@ -102,3 +104,9 @@ class Dataloader:
 		val_loader = torch.utils.data.DataLoader(val_data, batch_size=self.batch_size, shuffle=True, num_workers=0,
 												 pin_memory=True)
 		return val_loader
+
+	def load_test_data(self):
+		test_data = self.load(self.test_path)
+		test_loader = torch.utils.data.DataLoader(test_data, batch_size=self.batch_size, shuffle=True, num_workers=0,
+												 pin_memory=True)
+		return test_loader

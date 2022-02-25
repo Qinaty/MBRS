@@ -1,0 +1,16 @@
+{
+  "result_folder": "04_wo_mask_raw3/",
+  "model_epoch": 99,
+  "with_diffusion": false,
+  "strength_factor": 1,
+  "dataset_path": "test_coco_5000/",
+  "H": 128,
+  "W": 128,
+  "message_length": 64,
+  "save_images_number": 4,
+  "noise_layers": [
+    "Combined([JpegMask(50),Jpeg(50),Identity()])"
+  ],
+  "mask_iter": 30,
+  "mask_type": "none"
+}

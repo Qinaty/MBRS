@@ -1,13 +1,12 @@
 from .Encoder_MP_Decoder import *
 from .Discriminator import Discriminator
-from .NLAMask import NLAMask
-from utils.load_train_setting import mask_iter
+# from utils.load_train_setting import mask_iter
 
 
 class Network:
 
-	def __init__(self, H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion=False,
-				 only_decoder=False, attention=False):
+	def __init__(self, H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion=False,
+				 only_decoder=False):
 		# device
 		self.device = device
 
@@ -131,7 +130,6 @@ class Network:
 				opt_mask.step(closure)
 
 		return mask_paras['best_mask']
-
 
 	def train(self, images: torch.Tensor, messages: torch.Tensor, mask):
 		self.encoder_decoder.train()
@@ -461,7 +459,7 @@ class Network:
 			"d_encoded_loss": d_encoded_loss
 		}
 
-		return result, (images, encoded_images, noised_images, messages, decoded_messages)
+		return result, (images, encoded_images, noised_images, messages, decoded_messages, mask)
 
 	def decoded_message_error_rate(self, message, decoded_message):
 		length = message.shape[0]

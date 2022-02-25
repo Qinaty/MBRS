@@ -7,14 +7,21 @@ from utils.load_test_setting import *
 test
 '''
 
+# Modify: Choose GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-network = Network(H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion)
+attention = False
+if mask_type == "attention":
+	attention = True
+network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion)
+
 EC_path = result_folder + "models/EC_" + str(model_epoch) + ".pth"
 network.load_model_ed(EC_path)
 
 dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
-test_dataloader = dataloader.load_val_data()
+test_dataloader = dataloader.load_test_data()
 
 print("\nStart Testing : \n\n")
 
@@ -26,8 +33,10 @@ test_result = {
 
 start_time = time.time()
 
-saved_iterations = np.random.choice(np.arange(len(test_dataloader)), size=save_images_number, replace=False)
+# saved_iterations = np.random.choice(np.arange(len(test_dataloader)), size=save_images_number, replace=False)
+saved_iterations = [0, 1, 2, 3]
 saved_all = None
+# print(saved_iterations)
 
 num = 0
 for i, images in enumerate(test_dataloader):
@@ -47,8 +56,10 @@ for i, images in enumerate(test_dataloader):
 		# if mask_type == "opt":
 		# else:
 		# 	mask = None
-
-		encoded_images = network.encoder_decoder.module.encoder(images, messages)
+		if attention:
+			encoded_images, mask = network.encoder_decoder.module.encoder(images, messages)
+		else:
+			encoded_images = network.encoder_decoder.module.encoder(images, messages)
 		encoded_images = images + (encoded_images - image) * strength_factor
 		noised_images = network.encoder_decoder.module.noise([encoded_images, images])
 
@@ -73,14 +84,23 @@ for i, images in enumerate(test_dataloader):
 
 	for key in result:
 		test_result[key] += float(result[key])
+	print(mask)
 
 	num += 1
 
-	if i in saved_iterations:
-		if saved_all is None:
-			saved_all = get_random_images(image, encoded_images, noised_images)
-		else:
-			saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
+	if attention:
+		if i in saved_iterations:
+			if saved_all is None:
+				saved_all = get_random_images_mask(image, encoded_images, noised_images, mask)
+			else:
+				saved_all = concatenate_images_mask(saved_all, image, encoded_images, noised_images, mask)
+	else:
+		if i in saved_iterations:
+			if saved_all is None:
+				saved_all = get_random_images(image, encoded_images, noised_images)
+			else:
+				saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
+
 
 	'''
 	test results
@@ -107,4 +127,10 @@ with open(test_log, "a") as file:
 	file.write(content)
 
 print(content)
-save_images(saved_all, "test", result_folder + "images/", resize_to=(W, H))
+if attention:
+	save_images_mask(saved_all, "test_mask", result_folder + "images/", resize_to=(W, H))
+else:
+	save_images(saved_all, "test", result_folder + "images/", resize_to=(W, H))
+
+
+

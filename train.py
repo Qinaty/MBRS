@@ -15,14 +15,14 @@ train
 '''
 
 # Modify: Choose GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 attention = False
 if mask_type == "attention":
 	attention = True
-network = Network(H, W, message_length, noise_layers, device, batch_size, lr, with_diffusion, only_decoder, attention)
+network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion, only_decoder)
 
 dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
 train_dataloader = dataloader.load_train_data()
@@ -101,6 +101,7 @@ for epoch in range(epoch_number):
 
 		if mask_type == "attention":
 			result, mask = network.train_attention(image, message)
+			# print(mask.shape)
 		else:
 			result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
 
@@ -148,7 +149,7 @@ for epoch in range(epoch_number):
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
 		if mask_type == "attention":
-			result, (images, encoded_images, noised_images, messages, decoded_messages) = \
+			result, (images, encoded_images, noised_images, messages, decoded_messages, mask) = \
 				network.validation_attention(image, message)
 		else:
 			if mask_type == "opt":
@@ -174,7 +175,14 @@ for epoch in range(epoch_number):
 		num += 1
 
 		# Modify: save mask
-		if mask_type == "opt" and epoch == 99:
+		if mask_type == "attention":
+			if i in saved_iterations:
+				if saved_all is None:
+					saved_all = get_random_images_mask(image, encoded_images, noised_images, mask)
+				else:
+					saved_all = concatenate_images_mask(saved_all, image, encoded_images, noised_images, mask)
+
+		elif mask_type == "opt":
 			if i in saved_iterations:
 				if saved_all is None:
 					saved_all = get_random_images(image, encoded_images, mask)
@@ -187,7 +195,10 @@ for epoch in range(epoch_number):
 				else:
 					saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
 
-	save_images(saved_all, epoch, result_folder + "images/", resize_to=(W, H))
+	if attention:
+		save_images_mask(saved_all, epoch, result_folder + "images/", resize_to=(W, H))
+	else:
+		save_images(saved_all, epoch, result_folder + "images/", resize_to=(W, H))
 
 	'''
 	validation results
