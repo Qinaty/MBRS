@@ -141,33 +141,28 @@ class Encoder_Mask(nn.Module):
 		self.final_layer = nn.Conv2d(channels + 3, 3, kernel_size=1)  # 1x1卷积
 
 		# Modify: Add NLMask [attention mask]
-		# self.g_mask = nn.Sequential(
-		# 	Non_local_Block(channels, channels // 2),
-		# 	ResBlock(channels, channels, 3, 1, 1),
-		# 	ResBlock(channels, channels, 3, 1, 1),
-		# 	ResBlock(channels, channels, 3, 1, 1),
-		# 	nn.Conv2d(channels, channels, 1, 1, 0)
-		# )
-		# self.res3 = nn.Sequential(
-		# 	ResBlock(channels, channels, 3, 1, 1),
-		# 	ResBlock(channels, channels, 3, 1, 1),
-		# 	ResBlock(channels, channels, 3, 1, 1)
-		# )
+		self.g_mask = nn.Sequential(
+			Non_local_Block(channels, channels // 2),
+			ResBlock(channels, channels, 3, 1, 1),
+			ResBlock(channels, channels, 3, 1, 1),
+			ResBlock(channels, channels, 3, 1, 1),
+			nn.Conv2d(channels, channels, 1, 1, 0)
+		)
 
 		# Modify: Add NLMask [INN mask]
-		self.conv1 = nn.Conv2d(3, channels, 3, 1, 1)  # add channels
-		self.conv2 = nn.Conv2d(3 + channels, channels, 3, 1, 1)
-		self.conv3 = nn.Conv2d(3 + 2 * channels, channels, 3, 1, 1)
-		self.lrelu = nn.LeakyReLU(inplace=True)
-		self.senet = SENet(3 + 2 * channels, 3 + 2 * channels, blocks=blocks)
+		# self.conv1 = nn.Conv2d(3, channels, 3, 1, 1)  # add channels
+		# self.conv2 = nn.Conv2d(3 + channels, channels, 3, 1, 1)
+		# self.conv3 = nn.Conv2d(3 + 2 * channels, channels, 3, 1, 1)
+		# self.lrelu = nn.LeakyReLU(inplace=True)
+		# self.senet = SENet(3 + 2 * channels, 3 + 2 * channels, blocks=blocks)
 
 	def forward(self, image, message):
 		# generate mask
-		x1 = self.lrelu(self.conv1(image))
-		x2 = self.lrelu(self.conv2(torch.cat((image, x1), 1)))
-		x = torch.cat((image, x1, x2), 1)
-		x = self.senet(x)
-		mask = self.conv3(x)
+		# x1 = self.lrelu(self.conv1(image))
+		# x2 = self.lrelu(self.conv2(torch.cat((image, x1), 1)))
+		# x = torch.cat((image, x1, x2), 1)
+		# x = self.senet(x)
+		# mask = self.conv3(x)
 		# # print(type(mask))
 		# # add non_local
 		# mask = self.nl(mask)
@@ -184,7 +179,7 @@ class Encoder_Mask(nn.Module):
 		# print(intermediate1.size()) (64, H, W)
 
 		# Modify: Mask Processor Concat1
-		# mask = torch.sigmoid(self.g_mask(intermediate1))
+		mask = torch.sigmoid(self.g_mask(intermediate1))
 		# print(mask.size()) (64, H, W)
 		# print(type(mask))
 
@@ -206,6 +201,6 @@ class Encoder_Mask(nn.Module):
 		# last Conv part of Encoder
 		output = self.final_layer(concat2)
 
-		mask = torch.sum(mask, 1)  # 对各个channel求和得到mask
-
+		# mask = torch.sum(mask, 1, keepdim=True)  # 对各个channel求和得到mask
 		return output, mask
+

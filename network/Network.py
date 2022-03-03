@@ -54,82 +54,83 @@ class Network:
 		# weight of encoder-decoder loss
 		self.discriminator_weight = 0.0001
 		self.encoder_weight = 1
+		self.mask_weight = 1
 		self.decoder_weight = 10
 		self.grad_clip = 1e1  # Modify: opt_mask grad_clip
 
 	# Modify: train_with_mask
-	def train_mask(self, images: torch.Tensor, messages: torch.Tensor, mask: torch.Tensor):
-		self.encoder_decoder.eval()
-		self.discriminator.eval()
-
-		mask_wograd = mask
-		mask_wograd.requires_grad = False
-		# print("best_mask", mask_wograd)
-
-		mask = mask.clone().detach().to(self.device)
-		mask.requires_grad_()
-		opt_mask = torch.optim.LBFGS([mask], max_iter=1)
-		# print("mask", mask)
-		# print("opt_mask", opt_mask)
-
-		mask_paras = {
-			'image': images,
-			'message': messages,
-			'mask': mask,
-			'best_loss': float('inf'),
-			'best_mask': mask_wograd,
-			'encoded_image': None,
-			'optimizer': opt_mask,
-			'train_iter': mask_iter
-		}
-
-		with torch.enable_grad():
-			for iter in range(1, mask_paras['train_iter']):
-				def closure():
-					# nonlocal - change outer variable
-					nonlocal mask_paras
-					images_ = mask_paras['image']
-					messages_ = mask_paras['message']
-					mask_ = mask_paras['mask']
-					# print("mask_", mask_)
-
-					images_, messages_ = images_.to(self.device), messages_.to(self.device)
-					encoded_image, noised_image, decoded_message = self.encoder_decoder(images_, messages_)
-
-					# GAN : target label for encoded image should be "cover"(0)
-					g_label_decoded = self.discriminator(encoded_image)
-					loss_on_discriminator = self.criterion_BCE(g_label_decoded,
-															self.label_cover[:g_label_decoded.shape[0]])
-
-					# encoder
-					mse_loss = self.criterion_BMSE(encoded_image, images_)
-					mask_ex = mask_.expand_as(mse_loss)  # 对每个channel使用同样的mask
-					loss_on_encoder = abs(torch.mean(mask_ex * mse_loss))
-
-					# decoder
-					g_loss_on_decoder = self.criterion_MSE(decoded_message, messages_)
-
-					mask_loss = self.discriminator_weight * loss_on_discriminator + \
-								self.encoder_weight * loss_on_encoder + \
-								self.decoder_weight * g_loss_on_decoder
-
-					mask_paras['optimizer'].zero_grad()
-					mask_loss.backward()
-
-					if mask_loss < mask_paras['best_loss']:
-						mask_paras['best_loss'] = mask_loss
-						best_mask = mask_.clone().detach()
-						# print("best_mask", best_mask)
-						mask_paras['best_mask'] = best_mask
-						mask_paras['encoded_image'] = encoded_image
-
-					torch.nn.utils.clip_grad_norm_(mask_, self.grad_clip)
-
-					return mask_loss
-				# print("iter:", iter)
-				opt_mask.step(closure)
-
-		return mask_paras['best_mask']
+	# def train_mask(self, images: torch.Tensor, messages: torch.Tensor, mask: torch.Tensor):
+	# 	self.encoder_decoder.eval()
+	# 	self.discriminator.eval()
+	#
+	# 	mask_wograd = mask
+	# 	mask_wograd.requires_grad = False
+	# 	# print("best_mask", mask_wograd)
+	#
+	# 	mask = mask.clone().detach().to(self.device)
+	# 	mask.requires_grad_()
+	# 	opt_mask = torch.optim.LBFGS([mask], max_iter=1)
+	# 	# print("mask", mask)
+	# 	# print("opt_mask", opt_mask)
+	#
+	# 	mask_paras = {
+	# 		'image': images,
+	# 		'message': messages,
+	# 		'mask': mask,
+	# 		'best_loss': float('inf'),
+	# 		'best_mask': mask_wograd,
+	# 		'encoded_image': None,
+	# 		'optimizer': opt_mask,
+	# 		'train_iter': mask_iter
+	# 	}
+	#
+	# 	with torch.enable_grad():
+	# 		for iter in range(1, mask_paras['train_iter']):
+	# 			def closure():
+	# 				# nonlocal - change outer variable
+	# 				nonlocal mask_paras
+	# 				images_ = mask_paras['image']
+	# 				messages_ = mask_paras['message']
+	# 				mask_ = mask_paras['mask']
+	# 				# print("mask_", mask_)
+	#
+	# 				images_, messages_ = images_.to(self.device), messages_.to(self.device)
+	# 				encoded_image, noised_image, decoded_message = self.encoder_decoder(images_, messages_)
+	#
+	# 				# GAN : target label for encoded image should be "cover"(0)
+	# 				g_label_decoded = self.discriminator(encoded_image)
+	# 				loss_on_discriminator = self.criterion_BCE(g_label_decoded,
+	# 														self.label_cover[:g_label_decoded.shape[0]])
+	#
+	# 				# encoder
+	# 				mse_loss = self.criterion_BMSE(encoded_image, images_)
+	# 				mask_ex = mask_.expand_as(mse_loss)  # 对每个channel使用同样的mask
+	# 				loss_on_encoder = abs(torch.mean(mask_ex * mse_loss))
+	#
+	# 				# decoder
+	# 				g_loss_on_decoder = self.criterion_MSE(decoded_message, messages_)
+	#
+	# 				mask_loss = self.discriminator_weight * loss_on_discriminator + \
+	# 							self.encoder_weight * loss_on_encoder + \
+	# 							self.decoder_weight * g_loss_on_decoder
+	#
+	# 				mask_paras['optimizer'].zero_grad()
+	# 				mask_loss.backward()
+	#
+	# 				if mask_loss < mask_paras['best_loss']:
+	# 					mask_paras['best_loss'] = mask_loss
+	# 					best_mask = mask_.clone().detach()
+	# 					# print("best_mask", best_mask)
+	# 					mask_paras['best_mask'] = best_mask
+	# 					mask_paras['encoded_image'] = encoded_image
+	#
+	# 				torch.nn.utils.clip_grad_norm_(mask_, self.grad_clip)
+	#
+	# 				return mask_loss
+	# 			# print("iter:", iter)
+	# 			opt_mask.step(closure)
+	#
+	# 	return mask_paras['best_mask']
 
 	def train(self, images: torch.Tensor, messages: torch.Tensor, mask):
 		self.encoder_decoder.train()
@@ -219,6 +220,7 @@ class Network:
 			# use device to compute
 			images, messages = images.to(self.device), messages.to(self.device)
 			encoded_images, noised_images, decoded_messages, mask = self.encoder_decoder(images, messages)
+			mask = torch.sum(mask, 1, keepdim=True)
 
 			'''
 			train discriminator
@@ -250,12 +252,20 @@ class Network:
 			# Modify: mask
 			g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
 
+			# g_loss_on_encoder = self.criterion_BMSE(encoded_images, images)
+			# g_loss_on_encoder = abs(torch.mean(mask * g_loss_on_encoder))
+
+			# Modify: mask loss
+			residual_images = (encoded_images - images + 1) / 2
+			mask1 = mask.expand_as(residual_images)
+			g_loss_on_mask = self.criterion_MSE(residual_images, mask1)
+
 			# RESULT : the decoded message should be similar to the raw message
 			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
 
 			# full loss
 			g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
-					 self.decoder_weight * g_loss_on_decoder
+					 self.decoder_weight * g_loss_on_decoder + self.mask_weight * g_loss_on_mask
 
 			g_loss.backward()
 			self.opt_encoder_decoder.step()
@@ -285,48 +295,48 @@ class Network:
 		}
 		return result, mask
 
-	def train_only_decoder(self, images: torch.Tensor, messages: torch.Tensor):
-		self.encoder_decoder.train()
-
-		with torch.enable_grad():
-			# use device to compute
-			images, messages = images.to(self.device), messages.to(self.device)
-			encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages)
-
-			'''
-			train encoder and decoder
-			'''
-			self.opt_encoder_decoder.zero_grad()
-
-			# RESULT : the decoded message should be similar to the raw message
-			g_loss = self.criterion_MSE(decoded_messages, messages)
-
-			g_loss.backward()
-			self.opt_encoder_decoder.step()
-
-			# psnr
-			psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
-
-			# ssim
-			ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
-
-		'''
-		decoded message error rate
-		'''
-		error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
-
-		result = {
-			"error_rate": error_rate,
-			"psnr": psnr,
-			"ssim": ssim,
-			"g_loss": g_loss,
-			"g_loss_on_discriminator": 0.,
-			"g_loss_on_encoder": 0.,
-			"g_loss_on_decoder": 0.,
-			"d_cover_loss": 0.,
-			"d_encoded_loss": 0.
-		}
-		return result
+	# def train_only_decoder(self, images: torch.Tensor, messages: torch.Tensor):
+	# 	self.encoder_decoder.train()
+	#
+	# 	with torch.enable_grad():
+	# 		# use device to compute
+	# 		images, messages = images.to(self.device), messages.to(self.device)
+	# 		encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages)
+	#
+	# 		'''
+	# 		train encoder and decoder
+	# 		'''
+	# 		self.opt_encoder_decoder.zero_grad()
+	#
+	# 		# RESULT : the decoded message should be similar to the raw message
+	# 		g_loss = self.criterion_MSE(decoded_messages, messages)
+	#
+	# 		g_loss.backward()
+	# 		self.opt_encoder_decoder.step()
+	#
+	# 		# psnr
+	# 		psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
+	#
+	# 		# ssim
+	# 		ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
+	#
+	# 	'''
+	# 	decoded message error rate
+	# 	'''
+	# 	error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
+	#
+	# 	result = {
+	# 		"error_rate": error_rate,
+	# 		"psnr": psnr,
+	# 		"ssim": ssim,
+	# 		"g_loss": g_loss,
+	# 		"g_loss_on_discriminator": 0.,
+	# 		"g_loss_on_encoder": 0.,
+	# 		"g_loss_on_decoder": 0.,
+	# 		"d_cover_loss": 0.,
+	# 		"d_encoded_loss": 0.
+	# 	}
+	# 	return result
 
 	def validation(self, images: torch.Tensor, messages: torch.Tensor, mask):
 		self.encoder_decoder.eval()
@@ -406,6 +416,7 @@ class Network:
 			# use device to compute
 			images, messages = images.to(self.device), messages.to(self.device)
 			encoded_images, noised_images, decoded_messages, mask = self.encoder_decoder(images, messages)
+			mask = torch.sum(mask, 1, keepdim=True)
 
 			'''
 			validate discriminator
@@ -490,3 +501,8 @@ class Network:
 
 	def load_model_dis(self, path_discriminator: str):
 		self.discriminator.module.load_state_dict(torch.load(path_discriminator))
+
+	# Modify:
+	def get_features(self, images: torch.Tensor):
+		with torch.no_grad():
+			features = self.encoder_decoder.encoder

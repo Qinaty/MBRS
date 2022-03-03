@@ -135,7 +135,7 @@ def save_images_mask(saved_all, epoch, folder, resize_to=None):
 		masks_linear[id] = (masks_linear[id] - masks_linear[id].min()) / (
 				masks_linear[id].max() - masks_linear[id].min())
 		heatmap = masks_linear[id][0]
-		heatmap = sns.heatmap(heatmap, xticklabels=False, yticklabels=False).get_figure()
+		heatmap = sns.heatmap(heatmap, cbar=False, xticklabels=False, yticklabels=False).get_figure()
 		filename = os.path.join(folder, 'epoch-{}-{}.png'.format(epoch, id))
 		heatmap.savefig(filename)
 
@@ -157,7 +157,7 @@ def get_random_images_mask(images, encoded_images, noised_images, masks):
 	image = images.cpu()[selected_id - 1:selected_id, :, :, :]
 	encoded_image = encoded_images.cpu()[selected_id - 1:selected_id, :, :, :]
 	noised_image = noised_images.cpu()[selected_id - 1:selected_id, :, :, :]
-	masks = masks[:, np.newaxis, :, :]
+	# masks = masks[:, np.newaxis, :, :]
 	mask = masks.cpu()[selected_id - 1:selected_id, :, :, :]
 	# print(image.shape)
 	mask = mask.expand_as(image)
@@ -174,3 +174,11 @@ def concatenate_images_mask(saved_all, images, encoded_images, noised_images, ma
 	saved_all[2] = torch.cat((saved_all[2], saved[2]), 0)
 	saved_all[3] = torch.cat((saved_all[3], saved[3]), 0)
 	return saved_all
+
+
+def save_singel_grey(image: torch.Tensor, epoch, channel_id, pic_id, folder, type_):
+	filename = os.path.join(folder, 'epoch{}-pic{}-{}-{}.png'.format(epoch, pic_id, channel_id, type_))
+	image = image.cpu()
+	image = image * 10
+	saved_image = Image.fromarray(np.array(image, dtype=np.uint8)).convert("L")
+	saved_image.save(filename)

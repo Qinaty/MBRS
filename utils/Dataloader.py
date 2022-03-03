@@ -56,8 +56,6 @@ class Dataloader:
 		if len(image.shape) == 2:
 			image = image[:, :, np.newaxis].repeat(3, 2)
 
-
-
 		# Padding / Resize
 		image = self.resize(image, self.W * 1.1, self.H * 1.1)
 		image = self.padding(image)
@@ -85,7 +83,6 @@ class Dataloader:
 			id += 1
 
 			try:
-
 				if transformed is not None:
 					data.append(transformed)
 			except:

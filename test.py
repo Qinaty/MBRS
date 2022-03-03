@@ -84,7 +84,8 @@ for i, images in enumerate(test_dataloader):
 
 	for key in result:
 		test_result[key] += float(result[key])
-	print(mask)
+	# print(mask.max())
+	# print(mask.min())
 
 	num += 1
 

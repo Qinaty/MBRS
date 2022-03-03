@@ -99,7 +99,7 @@ for epoch in range(epoch_number):
 		else:
 			mask = None
 
-		if mask_type == "attention":
+		if attention:
 			result, mask = network.train_attention(image, message)
 			# print(mask.shape)
 		else:
@@ -148,7 +148,7 @@ for epoch in range(epoch_number):
 		image = images.to(device)
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
-		if mask_type == "attention":
+		if attention:
 			result, (images, encoded_images, noised_images, messages, decoded_messages, mask) = \
 				network.validation_attention(image, message)
 		else:
@@ -175,7 +175,7 @@ for epoch in range(epoch_number):
 		num += 1
 
 		# Modify: save mask
-		if mask_type == "attention":
+		if attention:
 			if i in saved_iterations:
 				if saved_all is None:
 					saved_all = get_random_images_mask(image, encoded_images, noised_images, mask)
