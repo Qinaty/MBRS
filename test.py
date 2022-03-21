@@ -3,6 +3,11 @@ from network.Network import *
 
 from utils.load_test_setting import *
 
+# Modify: for grad_cam
+from torchvision import transforms
+from gradcam import GradCAM
+import torchvision.models as models
+
 '''
 test
 '''
@@ -13,15 +18,34 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 attention = False
+addloss = False
+grad_cam = False
+mask = None
+
 if mask_type == "attention":
 	attention = True
-network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion)
+if mask_type == "attention_plus":
+	attention = True
+	addloss = True
+if mask_type == "gradcam":
+	grad_cam = True
+network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention,
+					addloss, grad_cam=grad_cam, with_diffusion=with_diffusion)
 
 EC_path = result_folder + "models/EC_" + str(model_epoch) + ".pth"
 network.load_model_ed(EC_path)
 
 dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
 test_dataloader = dataloader.load_test_data()
+
+# Mask-D: grad_cam
+if grad_cam:
+	vgg16 = models.vgg16(pretrained=True).to(device)
+	vgg16.eval()
+	normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+	conf = dict(model_type='vgg', arch=vgg16, layer_name='features_29')
+	camera = GradCAM.from_config(**conf)
+	alpha = 0.1
 
 print("\nStart Testing : \n\n")
 
@@ -49,32 +73,39 @@ for i, images in enumerate(test_dataloader):
 	network.encoder_decoder.eval()
 	network.discriminator.eval()
 
+	if grad_cam:
+		tmp_images = images.to(device)
+		mask, _ = camera(normalize(tmp_images.squeeze(0)).unsqueeze(0))
+		mask = alpha * mask
+		mask = torch.sum(mask, 1, keepdim=True)
+
 	with torch.no_grad():
-		# use device to compute
-		images, messages = images.to(network.device), message.to(network.device)
 
 		# if mask_type == "opt":
 		# else:
 		# 	mask = None
 		if attention:
-			encoded_images, mask = network.encoder_decoder.module.encoder(images, messages)
+			if addloss:
+				encoded_images, mask, _, _ = network.encoder_decoder.module.encoder(image, message)
+			else:
+				encoded_images, mask = network.encoder_decoder.module.encoder(image, message)
 		else:
-			encoded_images = network.encoder_decoder.module.encoder(images, messages)
-		encoded_images = images + (encoded_images - image) * strength_factor
-		noised_images = network.encoder_decoder.module.noise([encoded_images, images])
+			encoded_images = network.encoder_decoder.module.encoder(image, message, mask)
+		encoded_images = image + (encoded_images - image) * strength_factor
+		noised_images = network.encoder_decoder.module.noise([encoded_images, image])
 
 		decoded_messages = network.encoder_decoder.module.decoder(noised_images)
 
 		# psnr
-		psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2).item()
+		psnr = kornia.losses.psnr_loss(encoded_images.detach(), image, 2).item()
 
 		# ssim
-		ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean").item()
+		ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), image, window_size=5, reduction="mean").item()
 
 	'''
 	decoded message error rate
 	'''
-	error_rate = network.decoded_message_error_rate_batch(messages, decoded_messages)
+	error_rate = network.decoded_message_error_rate_batch(message, decoded_messages)
 
 	result = {
 		"error_rate": error_rate,

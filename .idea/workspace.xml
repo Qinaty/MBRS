@@ -2,19 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="307d85af-147f-47ba-944c-c2487614e8e1" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/test_channel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_channel_settings.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/load_test_channel_setting.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/Generate_Mask.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_multi.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_multi_settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/load_test_multi_setting.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/Decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Decoder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/Encoder_MP.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Encoder_MP_Decoder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/Network.py" beforeDir="false" afterPath="$PROJECT_DIR$/network/Network.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/compare/97_log_innmap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/results/compare/97_log_innmap.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/compare/98_log_innmap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/results/compare/98_log_innmap.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/compare/99_log_innmap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/results/compare/99_log_innmap.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/results/summury" beforeDir="false" afterPath="$PROJECT_DIR$/results/summury" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_channel.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_channel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_channel_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/test_channel_settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/Dataloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/save_images.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/save_images.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/train_settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +61,7 @@
       <recent name="C:\Users\Tango\Documents\GitHub\MBRS\utils" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.NLAMask">
+  <component name="RunManager" selected="Python.test_channel">
     <configuration name="NLAMask" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MBRS" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -102,8 +106,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test_channel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="MBRS" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_channel.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test_channel" />
         <item itemvalue="Python.NLAMask" />
         <item itemvalue="Python.combined" />
       </list>
@@ -180,6 +207,12 @@
       <workItem from="1646190724877" duration="28909000" />
       <workItem from="1646274548498" duration="3960000" />
       <workItem from="1646285501933" duration="11089000" />
+      <workItem from="1646302119377" duration="10062000" />
+      <workItem from="1646372522716" duration="7808000" />
+      <workItem from="1647309448428" duration="18241000" />
+      <workItem from="1647395742886" duration="10443000" />
+      <workItem from="1647483808680" duration="6243000" />
+      <workItem from="1647829263545" duration="4720000" />
     </task>
     <servers />
   </component>
@@ -191,26 +224,10 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="13" y="0" width="1037" height="682" key="#Deployment/0.0.1280.720@0.0.1280.720" timestamp="1643093372811" />
-    <state x="294" y="36" key="#Options" timestamp="1639043710976">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state x="294" y="36" key="#Options/0.0.1280.720@0.0.1280.720" timestamp="1639043710976" />
     <state x="108" y="0" key="#SSH_Configurations" timestamp="1642756240901">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="108" y="0" key="#SSH_Configurations/0.0.1280.720@0.0.1280.720" timestamp="1642756240901" />
-    <state x="345" y="96" key="#Servers" timestamp="1639043419635">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state x="345" y="96" key="#Servers/0.0.1280.720@0.0.1280.720" timestamp="1639043419635" />
-    <state x="96" y="16" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1639043423541">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state x="96" y="16" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.720@0.0.1280.720" timestamp="1639043423541" />
-    <state x="93" y="93" width="1095" height="535" key="DiffContextDialog" timestamp="1639055504199">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state x="93" y="93" width="1095" height="535" key="DiffContextDialog/0.0.1280.720@0.0.1280.720" timestamp="1639055504199" />
     <state x="93" y="93" width="1095" height="535" key="DirDiffDialog" timestamp="1642383103635">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
@@ -235,22 +252,6 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state width="1237" height="176" key="GridCell.Tab.0.right/0.0.1280.720@0.0.1280.720" timestamp="1643161912988" />
-    <state width="1237" height="220" key="GridCell.Tab.1.bottom" timestamp="1639058099155">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state width="1237" height="220" key="GridCell.Tab.1.bottom/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.1.center" timestamp="1639058099155">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state width="1237" height="220" key="GridCell.Tab.1.center/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.1.left" timestamp="1639058099155">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state width="1237" height="220" key="GridCell.Tab.1.left/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
-    <state width="1237" height="220" key="GridCell.Tab.1.right" timestamp="1639058099155">
-      <screen x="0" y="0" width="1280" height="720" />
-    </state>
-    <state width="1237" height="220" key="GridCell.Tab.1.right/0.0.1280.720@0.0.1280.720" timestamp="1639058099155" />
     <state x="426" y="81" key="RollbackChangesDialog" timestamp="1642910206477">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
@@ -267,10 +268,10 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="256" y="110" key="ftp.server.browser/0.0.1280.720@0.0.1280.720" timestamp="1642910760815" />
-    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup" timestamp="1646294190110">
+    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup" timestamp="1647831439445">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
-    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup/0.0.1280.720@0.0.1280.720" timestamp="1646294190110" />
+    <state x="303" y="41" width="672" height="160" key="search.everywhere.popup/0.0.1280.720@0.0.1280.720" timestamp="1647831439445" />
     <state x="455" y="62" width="1008" height="1017" key="search.everywhere.popup/0.0.1920.1080@0.0.1920.1080" timestamp="1639707121704" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">

@@ -15,30 +15,42 @@ train
 '''
 
 # Modify: Choose GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2, 3"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 attention = False
+add_loss = False
+grad_cam = False
+mask = None
+
 if mask_type == "attention":
 	attention = True
-network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion, only_decoder)
+if mask_type == "attention_plus":
+	attention = True
+	add_loss = True
+if mask_type == "gradcam":
+	grad_cam = True
+network = Network(H, W, message_length, noise_layers, device, batch_size, lr, attention, add_loss, grad_cam, with_diffusion, only_decoder)
 
 dataloader = Dataloader(batch_size, dataset_path, H=H, W=W)
 train_dataloader = dataloader.load_train_data()
 val_dataloader = dataloader.load_val_data()
 
-# Modify: grad_cam
-vgg16 = models.vgg16(pretrained=True).to(device)
-vgg16.eval()
-normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-conf = dict(model_type='vgg', arch=vgg16, layer_name='features_29')
-camera = GradCAM.from_config(**conf)
+# Mask-D: grad_cam
+if grad_cam == True:
+	vgg16 = models.vgg16(pretrained=True).to(device)
+	vgg16.eval()
+	normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+	conf = dict(model_type='vgg', arch=vgg16, layer_name='features_29')
+	camera = GradCAM.from_config(**conf)
+	alpha = 0.1
 
 if train_continue:
 	EC_path = "results/" + train_continue_path + "/models/EC_" + str(train_continue_epoch) + ".pth"
 	D_path = "results/" + train_continue_path + "/models/D_" + str(train_continue_epoch) + ".pth"
 	network.load_model(EC_path, D_path)
+
 
 print("\nStart training : \n\n")
 
@@ -46,17 +58,31 @@ for epoch in range(epoch_number):
 
 	epoch += train_continue_epoch if train_continue else 0
 
-	running_result = {
-		"error_rate": 0.0,
-		"psnr": 0.0,
-		"ssim": 0.0,
-		"g_loss": 0.0,
-		"g_loss_on_discriminator": 0.0,
-		"g_loss_on_encoder": 0.0,
-		"g_loss_on_decoder": 0.0,
-		"d_cover_loss": 0.0,
-		"d_encoded_loss": 0.0
-	}
+	if add_loss:
+		running_result = {
+			"error_rate": 0.0,
+			"psnr": 0.0,
+			"ssim": 0.0,
+			"g_loss": 0.0,
+			"g_loss_on_discriminator": 0.0,
+			"g_loss_on_encoder": 0.0,
+			"g_loss_on_decoder": 0.0,
+			"g_loss_on_mask": 0.0,
+			"d_cover_loss": 0.0,
+			"d_encoded_loss": 0.0
+		}
+	else:
+		running_result = {
+			"error_rate": 0.0,
+			"psnr": 0.0,
+			"ssim": 0.0,
+			"g_loss": 0.0,
+			"g_loss_on_discriminator": 0.0,
+			"g_loss_on_encoder": 0.0,
+			"g_loss_on_decoder": 0.0,
+			"d_cover_loss": 0.0,
+			"d_encoded_loss": 0.0
+		}
 
 	# Modify: record best
 	# best_result = running_result
@@ -72,36 +98,52 @@ for epoch in range(epoch_number):
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
 		# Modify
-		if mask_type == "opt":
-			mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
-			# print(mask.shape[1])
-			mask = network.train_mask(image, message, mask)
-			mask = mask.to(device)
-		elif mask_type == "uniform":
-			mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
-			mask.requires_grad = False
-		elif mask_type == "grad_cam":
-			alpha = 0.5
-			# image_ = None
-			# get C*H*W
-			# for pic in image:
-			# 	pic = normalize(pic.squeeze()).unsqueeze(0)
-			# 	print(type(pic))
-			# 	if image_ is None:
-			# 		image_ = pic
-			# 	else:
-			# 		image_ = torch.cat([image_, pic], dim=0)
-			# print("!!", type(image_))
-
-			mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
-			# print(mask.shape)
-			mask = alpha * mask.to(device)
-		else:
-			mask = None
+		# if mask_type == "opt":
+		# 	mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
+		# 	# print(mask.shape[1])
+		# 	mask = network.train_mask(image, message, mask)
+		# 	mask = mask.to(device)
+		# elif mask_type == "uniform":
+		# 	mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
+		# 	mask.requires_grad = False
+		# elif mask_type == "grad_cam":
+		# 	alpha = 0.5
+		# 	# image_ = None
+		# 	# get C*H*W
+		# 	# for pic in image:
+		# 	# 	pic = normalize(pic.squeeze()).unsqueeze(0)
+		# 	# 	print(type(pic))
+		# 	# 	if image_ is None:
+		# 	# 		image_ = pic
+		# 	# 	else:
+		# 	# 		image_ = torch.cat([image_, pic], dim=0)
+		# 	# print("!!", type(image_))
+		#
+		# 	mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
+		# 	# print(mask.shape)
+		# 	mask = alpha * mask.to(device)
+		# else:
+		# 	mask = None
 
 		if attention:
-			result, mask = network.train_attention(image, message)
+			if add_loss:
+				result, mask = network.train_attention_loss(image, message)
+			else:
+				result, mask = network.train_attention(image, message)
 			# print(mask.shape)
+		elif grad_cam:
+			# Mask-D: Grad-cam
+			tmp_images = images.to(device)
+			mask = torch.empty_like(tmp_images)
+			for id_ in range(tmp_images.shape[0]):
+				tmp, _ = camera(normalize(tmp_images[id_]).unsqueeze(0))
+				mask[id_] = tmp
+			mask = alpha * mask
+			mask = torch.sum(mask, 1, keepdim=True)
+			# mask = alpha * get_grad_cam(tmp_images).to(device)
+			# mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
+			# mask = alpha * mask.to(device)
+			result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
 		else:
 			result = network.train(image, message, mask) if not only_decoder else network.train_only_decoder(image, message)
 
@@ -125,18 +167,31 @@ for epoch in range(epoch_number):
 	# '''
 	# validation
 	# '''
-
-	val_result = {
-		"error_rate": 0.0,
-		"psnr": 0.0,
-		"ssim": 0.0,
-		"g_loss": 0.0,
-		"g_loss_on_discriminator": 0.0,
-		"g_loss_on_encoder": 0.0,
-		"g_loss_on_decoder": 0.0,
-		"d_cover_loss": 0.0,
-		"d_encoded_loss": 0.0
-	}
+	if add_loss:
+		val_result = {
+			"error_rate": 0.0,
+			"psnr": 0.0,
+			"ssim": 0.0,
+			"g_loss": 0.0,
+			"g_loss_on_discriminator": 0.0,
+			"g_loss_on_encoder": 0.0,
+			"g_loss_on_decoder": 0.0,
+			"g_loss_on_mask": 0.0,
+			"d_cover_loss": 0.0,
+			"d_encoded_loss": 0.0
+		}
+	else:
+		val_result = {
+			"error_rate": 0.0,
+			"psnr": 0.0,
+			"ssim": 0.0,
+			"g_loss": 0.0,
+			"g_loss_on_discriminator": 0.0,
+			"g_loss_on_encoder": 0.0,
+			"g_loss_on_decoder": 0.0,
+			"d_cover_loss": 0.0,
+			"d_encoded_loss": 0.0
+		}
 
 	start_time = time.time()
 
@@ -149,25 +204,33 @@ for epoch in range(epoch_number):
 		message = torch.Tensor(np.random.choice([0, 1], (image.shape[0], message_length))).to(device)
 
 		if attention:
-			result, (images, encoded_images, noised_images, messages, decoded_messages, mask) = \
-				network.validation_attention(image, message)
+			if add_loss:
+				result, (images, encoded_images, noised_images, messages, decoded_messages, mask) = \
+					network.validation_attention_loss(image, message)
+			else:
+				result, (images, encoded_images, noised_images, messages, decoded_messages, mask) = \
+					network.validation_attention(image, message)
 		else:
-			if mask_type == "opt":
-				mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
-				mask = network.train_mask(image, message, mask)
-				mask = mask.to(device)
-			elif mask_type == "uniform":
-				mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
-				mask.requires_grad = False
-			elif mask_type == "grad_cam":
-				alpha = 0.5
-				mask, _ = camera(normalize(image.squeeze()).unsqueeze(0))
-				# print(mask.shape)
-				mask = alpha * mask.to(device)
+			# if mask_type == "opt":
+			# 	mask = torch.empty_like(image)[:, 0:1, :, :].normal_(mean=-2, std=1)
+			# 	mask = network.train_mask(image, message, mask)
+			# 	mask = mask.to(device)
+			# elif mask_type == "uniform":
+			# 	mask = torch.ones_like(image)[:, 0:1, :, :].to(device)
+			# 	mask.requires_grad = False
+			if grad_cam:
+				tmp_images = images.to(device)
+				mask = torch.empty_like(tmp_images)
+				for id_ in range(tmp_images.shape[0]):
+					tmp, _ = camera(normalize(tmp_images[id_]).unsqueeze(0))
+					mask[id_] = tmp
+				mask = alpha * mask
+				mask = torch.sum(mask, 1, keepdim=True)
 			else:
 				mask = None
 
-			result, (images, encoded_images, noised_images, messages, decoded_messages) = network.validation(image, message, mask)
+			result, (images, encoded_images, noised_images, messages, decoded_messages) = \
+				network.validation(image, message, mask)
 
 		for key in result:
 			val_result[key] += float(result[key])
@@ -182,12 +245,12 @@ for epoch in range(epoch_number):
 				else:
 					saved_all = concatenate_images_mask(saved_all, image, encoded_images, noised_images, mask)
 
-		elif mask_type == "opt":
+		elif grad_cam:
 			if i in saved_iterations:
 				if saved_all is None:
-					saved_all = get_random_images(image, encoded_images, mask)
+					saved_all = get_random_images_mask(image, encoded_images, noised_images, mask)
 				else:
-					saved_all = concatenate_images(saved_all, image, encoded_images, mask)
+					saved_all = concatenate_images_mask(saved_all, image, encoded_images, noised_images, mask)
 		else:
 			if i in saved_iterations:
 				if saved_all is None:
@@ -195,7 +258,7 @@ for epoch in range(epoch_number):
 				else:
 					saved_all = concatenate_images(saved_all, image, encoded_images, noised_images)
 
-	if attention:
+	if attention or grad_cam:
 		save_images_mask(saved_all, epoch, result_folder + "images/", resize_to=(W, H))
 	else:
 		save_images(saved_all, epoch, result_folder + "images/", resize_to=(W, H))

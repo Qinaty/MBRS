@@ -1,5 +1,5 @@
 {
-  "result_folder": "04_wo_mask_bs16/",
+  "result_folder": "11_innmap_bs16_0.0001/",
   "model_epoch": 99,
   "with_diffusion": false,
   "strength_factor": 1,
@@ -12,5 +12,5 @@
     "Combined([JpegMask(50),Jpeg(50),Identity()])"
   ],
   "mask_iter": 30,
-  "mask_type": "none"
+  "mask_type": "attention"
 }

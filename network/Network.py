@@ -5,19 +5,23 @@ from .Discriminator import Discriminator
 
 class Network:
 
-	def __init__(self, H, W, message_length, noise_layers, device, batch_size, lr, attention, with_diffusion=False,
-				 only_decoder=False):
+	def __init__(self, H, W, message_length, noise_layers, device, batch_size, lr, attention, add_loss, grad_cam=False,
+				 with_diffusion=False, only_decoder=False):
 		# device
 		self.device = device
 
 		# network
 		if attention:
-			self.encoder_decoder = EncoderDecoder_Mask(H, W, message_length, noise_layers).to(device)
+			if add_loss:
+				self.encoder_decoder = EncoderDecoder_Mask_Loss(H, W, message_length, noise_layers).to(device)
+			else:
+				self.encoder_decoder = EncoderDecoder_Mask(H, W, message_length, noise_layers).to(device)
 		else:
 			if not with_diffusion:
-				self.encoder_decoder = EncoderDecoder(H, W, message_length, noise_layers).to(device)
+				# print("Netword: ", grad_cam)
+				self.encoder_decoder = EncoderDecoder(H, W, message_length, noise_layers, grad_cam=grad_cam).to(device)
 			else:
-				self.encoder_decoder = EncoderDecoder_Diffusion(H, W, message_length, noise_layers).to(device)
+				self.encoder_decoder = EncoderDecoder_Diffusion(H, W, message_length, noise_layers, grad_cam).to(device)
 
 		# self.encoder_decoder_mask = EncoderDecoder_Mask(H, W, message_length, noise_layers).to(device)
 
@@ -54,8 +58,8 @@ class Network:
 		# weight of encoder-decoder loss
 		self.discriminator_weight = 0.0001
 		self.encoder_weight = 1
-		self.mask_weight = 1
-		self.decoder_weight = 10
+		self.mask_weight = 0.1
+		self.decoder_weight = 100
 		self.grad_clip = 1e1  # Modify: opt_mask grad_clip
 
 	# Modify: train_with_mask
@@ -139,7 +143,7 @@ class Network:
 		with torch.enable_grad():
 			# use device to compute
 			images, messages = images.to(self.device), messages.to(self.device)
-			encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages)
+			encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages, mask)
 
 			'''
 			train discriminator
@@ -256,16 +260,16 @@ class Network:
 			# g_loss_on_encoder = abs(torch.mean(mask * g_loss_on_encoder))
 
 			# Modify: mask loss
-			residual_images = (encoded_images - images + 1) / 2
-			mask1 = mask.expand_as(residual_images)
-			g_loss_on_mask = self.criterion_MSE(residual_images, mask1)
+			# residual_images = (encoded_images - images + 1) / 2
+			# mask1 = mask.expand_as(residual_images)
+			# g_loss_on_mask = self.criterion_MSE(residual_images, mask1)
 
 			# RESULT : the decoded message should be similar to the raw message
 			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
 
 			# full loss
 			g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
-					 self.decoder_weight * g_loss_on_decoder + self.mask_weight * g_loss_on_mask
+					 self.decoder_weight * g_loss_on_decoder
 
 			g_loss.backward()
 			self.opt_encoder_decoder.step()
@@ -294,6 +298,94 @@ class Network:
 			"d_encoded_loss": d_encoded_loss
 		}
 		return result, mask
+
+
+	# def train_attention_loss(self, images, messages):
+	# 	self.encoder_decoder.train()
+	# 	self.discriminator.train()
+	#
+	# 	with torch.enable_grad():
+	# 		# use device to compute
+	# 		images, messages = images.to(self.device), messages.to(self.device)
+	# 		encoded_images, noised_images, decoded_messages, mask, \
+	# 			original_features, encoded_features = self.encoder_decoder(images, messages)
+	#
+	# 		'''
+	# 		train discriminator
+	# 		'''
+	# 		self.opt_discriminator.zero_grad()
+	#
+	# 		# RAW : target label for image should be "cover"(1)
+	# 		d_label_cover = self.discriminator(images)
+	# 		d_cover_loss = self.criterion_BCE(d_label_cover, self.label_cover[:d_label_cover.shape[0]])
+	# 		d_cover_loss.backward()
+	#
+	# 		# GAN : target label for encoded image should be "encoded"(0)
+	# 		d_label_encoded = self.discriminator(encoded_images.detach())
+	# 		d_encoded_loss = self.criterion_BCE(d_label_encoded, self.label_encoded[:d_label_encoded.shape[0]])
+	# 		d_encoded_loss.backward()
+	#
+	# 		self.opt_discriminator.step()  # optimizer.step()对应每一个mini-batch
+	#
+	# 		'''
+	# 		train encoder and decoder
+	# 		'''
+	# 		self.opt_encoder_decoder.zero_grad()
+	#
+	# 		# GAN : target label for encoded image should be "cover"(0)
+	# 		g_label_decoded = self.discriminator(encoded_images)
+	# 		g_loss_on_discriminator = self.criterion_BCE(g_label_decoded, self.label_cover[:g_label_decoded.shape[0]])
+	#
+	# 		# RAW : the encoded image should be similar to cover image
+	# 		# Modify: mask
+	# 		g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+	#
+	# 		# Modify: mask loss
+	# 		residual_images = encoded_images - images
+	# 		# mask1 = mask.expand_as(residual_images)
+	# 		# g_loss_on_mask = self.criterion_MSE(residual_images, mask1)
+	# 		saved_channels = [18, 25, 27, 38, 43]
+	# 		original_features = original_features[:, [saved_channels]]
+	# 		encoded_features = encoded_features[:, [saved_channels]]
+	# 		# original_features = (original_features - original_features.min()) / (original_features.max() - original_features.min())
+	# 		# encoded_features = (encoded_features - encoded_features.min()) / (encoded_features.max() - encoded_features.min())
+	# 		g_loss_on_mask = 1 - self.criterion_MSE(original_features, encoded_features)
+	#
+	# 		# RESULT : the decoded message should be similar to the raw message
+	# 		g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
+	#
+	# 		# full loss
+	# 		g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
+	# 				 self.decoder_weight * g_loss_on_decoder + self.mask_weight * g_loss_on_mask
+	#
+	# 		g_loss.backward()
+	# 		self.opt_encoder_decoder.step()
+	#
+	# 		# psnr
+	# 		psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
+	#
+	# 		# ssim
+	# 		ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
+	# 		# ssim = 1 - 2 * kornia.losses.ssim_loss(encoded_images.detach(), images, window_size=5, reduction="mean")
+	#
+	# 	'''
+	# 	decoded message error rate
+	# 	'''
+	# 	error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
+	#
+	# 	result = {
+	# 		"error_rate": error_rate,
+	# 		"psnr": psnr,
+	# 		"ssim": ssim,
+	# 		"g_loss": g_loss,
+	# 		"g_loss_on_discriminator": g_loss_on_discriminator,
+	# 		"g_loss_on_encoder": g_loss_on_encoder,
+	# 		"g_loss_on_decoder": g_loss_on_decoder,
+	# 		"g_loss_on_mask": g_loss_on_mask,
+	# 		"d_cover_loss": d_cover_loss,
+	# 		"d_encoded_loss": d_encoded_loss
+	# 	}
+	# 	return result, mask
 
 	# def train_only_decoder(self, images: torch.Tensor, messages: torch.Tensor):
 	# 	self.encoder_decoder.train()
@@ -345,7 +437,7 @@ class Network:
 		with torch.no_grad():
 			# use device to compute
 			images, messages = images.to(self.device), messages.to(self.device)
-			encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages)
+			encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages, mask)
 
 			'''
 			validate discriminator
@@ -367,13 +459,14 @@ class Network:
 			g_loss_on_discriminator = self.criterion_BCE(g_label_decoded, self.label_cover[:g_label_decoded.shape[0]])
 
 			# RAW : the encoded image should be similar to cover image
-			if mask == None:
-				g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+			g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+			# if mask == None:
+			# 	g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
 			# Modify: mask
-			else:
-				g_loss_on_encoder = self.criterion_BMSE(encoded_images, images)
-				mask = mask.expand_as(g_loss_on_encoder)
-				g_loss_on_encoder = abs(torch.mean(mask * g_loss_on_encoder))
+			# else:
+			# 	g_loss_on_encoder = self.criterion_BMSE(encoded_images, images)
+			# 	mask = mask.expand_as(g_loss_on_encoder)
+			# 	g_loss_on_encoder = abs(torch.mean(mask * g_loss_on_encoder))
 
 			# RESULT : the decoded message should be similar to the raw message
 			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
@@ -466,6 +559,81 @@ class Network:
 			"g_loss_on_discriminator": g_loss_on_discriminator,
 			"g_loss_on_encoder": g_loss_on_encoder,
 			"g_loss_on_decoder": g_loss_on_decoder,
+			"d_cover_loss": d_cover_loss,
+			"d_encoded_loss": d_encoded_loss
+		}
+
+		return result, (images, encoded_images, noised_images, messages, decoded_messages, mask)
+
+	def validation_attention_loss(self, images: torch.Tensor, messages: torch.Tensor):
+		self.encoder_decoder.eval()
+		self.discriminator.eval()
+
+		with torch.no_grad():
+			# use device to compute
+			images, messages = images.to(self.device), messages.to(self.device)
+			encoded_images, noised_images, decoded_messages, mask,\
+				original_features, encoded_features = self.encoder_decoder(images, messages)
+			mask = torch.sum(mask, 1, keepdim=True)
+
+			'''
+			validate discriminator
+			'''
+			# RAW : target label for image should be "cover"(1)
+			d_label_cover = self.discriminator(images)
+			d_cover_loss = self.criterion_BCE(d_label_cover, self.label_cover[:d_label_cover.shape[0]])
+
+			# GAN : target label for encoded image should be "encoded"(0)
+			d_label_encoded = self.discriminator(encoded_images.detach())
+			d_encoded_loss = self.criterion_BCE(d_label_encoded, self.label_encoded[:d_label_encoded.shape[0]])
+
+			'''
+			validate encoder and decoder
+			'''
+
+			# GAN : target label for encoded image should be "cover"(0)
+			g_label_decoded = self.discriminator(encoded_images)
+			g_loss_on_discriminator = self.criterion_BCE(g_label_decoded, self.label_cover[:g_label_decoded.shape[0]])
+
+			# RAW : the encoded image should be similar to cover image
+			g_loss_on_encoder = self.criterion_MSE(encoded_images, images)
+
+			# RESULT : the decoded message should be similar to the raw message
+			g_loss_on_decoder = self.criterion_MSE(decoded_messages, messages)
+
+			saved_channels = [18, 25, 27, 38, 43]
+			original_features = original_features[:, [saved_channels]]
+			encoded_features = encoded_features[:, [saved_channels]]
+			original_features = (original_features - original_features.min()) \
+								/ (original_features.max() - original_features.min())
+			encoded_features = (encoded_features - encoded_features.min()) \
+								/ (encoded_features.max() - encoded_features.min())
+			g_loss_on_mask = 1 - self.criterion_MSE(original_features, encoded_features)
+
+			# full loss
+			g_loss = self.discriminator_weight * g_loss_on_discriminator + self.encoder_weight * g_loss_on_encoder + \
+					 self.decoder_weight * g_loss_on_decoder + self.mask_weight * g_loss_on_mask
+
+			# psnr
+			psnr = kornia.losses.psnr_loss(encoded_images.detach(), images, 2)
+
+			# ssim
+			ssim = 1 - 2 * kornia.losses.ssim(encoded_images.detach(), images, window_size=5, reduction="mean")
+
+		'''
+		decoded message error rate
+		'''
+		error_rate = self.decoded_message_error_rate_batch(messages, decoded_messages)
+
+		result = {
+			"error_rate": error_rate,
+			"psnr": psnr,
+			"ssim": ssim,
+			"g_loss": g_loss,
+			"g_loss_on_discriminator": g_loss_on_discriminator,
+			"g_loss_on_encoder": g_loss_on_encoder,
+			"g_loss_on_decoder": g_loss_on_decoder,
+			"g_loss_on_mask": g_loss_on_mask,
 			"d_cover_loss": d_cover_loss,
 			"d_encoded_loss": d_encoded_loss
 		}
